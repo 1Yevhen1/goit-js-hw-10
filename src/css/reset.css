@@ -13,7 +13,9 @@ p:last-child {
 }
 
 ul {
-  margin: 0;
+  position: absolute;
+  margin-left: 870px;
+  
   padding: 0;
   list-style: none;
 }
@@ -32,3 +34,4 @@ img {
   max-width: 100%;
   height: auto;
 }
+

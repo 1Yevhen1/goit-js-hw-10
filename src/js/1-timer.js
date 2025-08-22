@@ -1,5 +1,7 @@
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
+import iziToast from "izitoast";
+import "izitoast/dist/css/iziToast.min.css";
 
 const input = document.querySelector("#datetime-picker");
 const buttonStart = document.querySelector("[data-start]");
@@ -8,24 +10,35 @@ const hoursEl = document.querySelector("[data-hours]");
 const minutesEl = document.querySelector("[data-minutes]");
 const secondsEl = document.querySelector("[data-seconds]");
 
-// Функція для додавання нуля спереду
+
+buttonStart.disabled = true;
+
+
 function addLeadingZero(value) {
   return String(value).padStart(2, "0");
 }
 
 flatpickr(input, {
   enableTime: true,
+  time_24hr: true,
+  minuteIncrement: 1,
   dateFormat: "Y-m-d H:i",
   onClose(selectedDates) {
-    const selectedTime = selectedDates[0].getTime();
-    if (selectedTime <= Date.now()) {
+    const selectedTime = selectedDates[0]?.getTime();
+    if (!selectedTime || selectedTime <= Date.now()) {
       buttonStart.disabled = true;
-      alert("Please choose a date in the future"); // повідомлення
+      iziToast.warning({
+        title: 'Помилка',
+        message: 'Please choose a date in the future',
+        position: 'topRight',
+        timeout: 2000,
+      });
     } else {
       buttonStart.disabled = false;
     }
   },
 });
+
 
 function convertMs(ms) {
   const second = 1000;
@@ -41,7 +54,7 @@ function convertMs(ms) {
   return { days, hours, minutes, seconds };
 }
 
-// Оновлення інтерфейсу
+
 function updateClockface({ days, hours, minutes, seconds }) {
   daysEl.textContent = addLeadingZero(days);
   hoursEl.textContent = addLeadingZero(hours);
@@ -49,11 +62,12 @@ function updateClockface({ days, hours, minutes, seconds }) {
   secondsEl.textContent = addLeadingZero(seconds);
 }
 
+
 const timer = {
   intervalId: null,
   start() {
     const targetTime = Date.parse(input.value);
-    if (this.intervalId) return;
+    if (!targetTime || this.intervalId) return;
 
     buttonStart.disabled = true;
 
@@ -63,6 +77,12 @@ const timer = {
         clearInterval(this.intervalId);
         this.intervalId = null;
         updateClockface(convertMs(0));
+        iziToast.success({
+          title: 'Готово',
+          message: 'Таймер завершено!',
+          position: 'topRight',
+          timeout: 2000,
+        });
         return;
       }
       updateClockface(convertMs(deltaTime));
